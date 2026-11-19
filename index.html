@@ -2,14 +2,14 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=1180">
   <meta name="theme-color" content="#173c35">
   <meta name="description" content="理学整体 寄り所の予約画面サンプル">
   <title>ご予約｜理学整体 寄り所</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&family=Noto+Serif+JP:wght@600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=20261119-2">
 </head>
 <body>
   <header class="site-header">
@@ -67,7 +67,7 @@
           <div class="date-strip" id="dateStrip" aria-label="月間カレンダーから日付を選択"></div>
         </div>
         <div class="time-area">
-          <div class="time-label"><span id="selectedDateLabel">日付を選択してください</span></div>
+          <div class="time-label"><span id="selectedDateLabel">日付を選択してください</span><small class="availability-legend"><i></i>空き <i></i>予約不可</small></div>
           <div class="time-grid" id="timeGrid"></div>
         </div>
       </section>
@@ -102,6 +102,6 @@
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="./app.js"></script>
+  <script src="./app.js?v=20261119-2"></script>
 </body>
 </html>

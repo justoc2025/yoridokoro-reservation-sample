@@ -110,29 +110,31 @@ function renderTimes() {
   const closingMinutes = 21 * 60;
   const blocked = state.date?.getDay() === 6
     ? [{ start: 10 * 60 + 40, end: 12 * 60 }, { start: 16 * 60 + 30, end: 17 * 60 + 40 }]
-    : [];
+    : [{ start: 10 * 60 + 20, end: 11 * 60 }, { start: 15 * 60 + 40, end: 16 * 60 + 20 }];
   const times = [];
   const frameMinutes = state.course.frame + (state.afterTea ? 10 : 0);
   for (let start = openingMinutes; start < closingMinutes; start += 10) {
     const end = start + frameMinutes;
-    if (!blocked.some(item => start < item.end && end > item.start)) {
-      times.push(`${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`);
-    }
+    const time = `${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`;
+    const unavailable = blocked.some(item => start < item.end && end > item.start);
+    times.push({ time, unavailable });
   }
-  const hours = [...new Set(times.map(time => Number(time.slice(0, 2))))];
+  const hours = [...new Set(times.map(item => Number(item.time.slice(0, 2))))];
   hours.forEach(hour => {
-    const hourTimes = times.filter(time => Number(time.slice(0, 2)) === hour);
+    const hourTimes = times.filter(item => Number(item.time.slice(0, 2)) === hour);
     const section = document.createElement('section');
     section.className = 'time-period';
     section.innerHTML = '<div class="time-period-grid"></div>';
     const grid = section.querySelector('.time-period-grid');
-    hourTimes.forEach(time => {
+    hourTimes.forEach(item => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'time-button';
-      button.textContent = time;
+      button.textContent = item.time;
+      button.disabled = item.unavailable;
+      if (item.unavailable) button.setAttribute('aria-label', `${item.time} 予約不可`);
       button.addEventListener('click', () => {
-        state.time = time;
+        state.time = item.time;
         document.querySelectorAll('.time-button').forEach(el => el.classList.toggle('selected', el === button));
         updateSummary();
       });
