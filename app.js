@@ -1,10 +1,11 @@
 const courses = [
-  { id: 'short', minutes: 30, frame: 45, name: '部分ケア', desc: '気になる箇所を中心に整えます', price: '4,500円' },
-  { id: 'standard', minutes: 60, frame: 75, name: '全身整体', desc: '全身の状態を確認し、丁寧に整えます', price: '7,500円', recommended: true },
-  { id: 'long', minutes: 80, frame: 95, name: 'じっくり整体', desc: 'お悩みを伺いながら時間をかけて整えます', price: '9,500円' }
+  { id: 'ume', minutes: 30, frame: 40, name: '梅コース', desc: '時間がないけど不調を軽くしたい方向け', price: 3500 },
+  { id: 'take', minutes: 60, frame: 70, name: '竹コース', desc: '慢性的な疲れや不調の根本ケアをしたい方向け', price: 6800, recommended: true },
+  { id: 'matsu', minutes: 80, frame: 90, name: '松コース', desc: 'しっかり時間をかけて本格的に改善したい方向け', price: 9000 }
 ];
 
-const state = { course: null, date: null, time: null };
+const state = { course: null, afterTea: false, date: null, time: null, calendarCursor: null };
+const yen = new Intl.NumberFormat('ja-JP');
 const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
 const courseList = document.querySelector('#courseList');
 const dateStrip = document.querySelector('#dateStrip');
@@ -17,22 +18,69 @@ courses.forEach(course => {
   button.type = 'button';
   button.className = 'course-card';
   button.dataset.id = course.id;
-  button.innerHTML = `<span class="course-time">${course.minutes}分${course.recommended ? '・おすすめ' : ''}</span><h3>${course.name}</h3><p>${course.desc}</p><span class="price">${course.price}</span>`;
+  button.innerHTML = `<span class="course-time">約${course.minutes}分${course.recommended ? '・おすすめ' : ''}</span><h3>${course.name}</h3><p>${course.desc}</p><span class="price">${yen.format(course.price)}円</span>`;
   button.addEventListener('click', () => selectCourse(course));
   courseList.appendChild(button);
 });
 
-for (let i = 1; i <= 7; i++) {
+document.querySelector('#afterTeaOption').addEventListener('change', event => {
+  state.afterTea = event.target.checked;
+  state.time = null;
+  document.querySelector('#afterTeaCard').classList.toggle('selected', state.afterTea);
+  if (state.date) renderTimes();
+  updateSummary();
+});
+
+const bookableDates = [];
+for (let i = 1; i <= 60; i++) {
   const date = new Date();
   date.setHours(0, 0, 0, 0);
   date.setDate(date.getDate() + i);
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'date-button';
-  button.dataset.date = date.toISOString();
-  button.innerHTML = `<span>${date.getMonth() + 1}月</span><b>${date.getDate()}</b><small>${weekdays[date.getDay()]}・○</small>`;
-  button.addEventListener('click', () => selectDate(date, button));
-  dateStrip.appendChild(button);
+  bookableDates.push({ date, key: dateKey(date), closed: date.getDay() === 0 });
+}
+state.calendarCursor = new Date(bookableDates[0].date.getFullYear(), bookableDates[0].date.getMonth(), 1);
+document.querySelector('#prevMonth').addEventListener('click', () => changeMonth(-1));
+document.querySelector('#nextMonth').addEventListener('click', () => changeMonth(1));
+renderCalendar();
+
+function dateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function changeMonth(offset) {
+  state.calendarCursor = new Date(state.calendarCursor.getFullYear(), state.calendarCursor.getMonth() + offset, 1);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const year = state.calendarCursor.getFullYear();
+  const month = state.calendarCursor.getMonth();
+  const first = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const availableMap = new Map(bookableDates.map(item => [item.key, item]));
+  dateStrip.innerHTML = '';
+  document.querySelector('#calendarMonth').textContent = `${year}年${month + 1}月`;
+  for (let i = 0; i < first.getDay(); i++) dateStrip.appendChild(document.createElement('span'));
+  for (let day = 1; day <= lastDay; day++) {
+    const date = new Date(year, month, day);
+    const item = availableMap.get(dateKey(date));
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'date-button';
+    if (date.getDay() === 0) button.classList.add('sunday');
+    if (date.getDay() === 6) button.classList.add('saturday');
+    button.disabled = !item || item.closed;
+    button.classList.toggle('selected', state.date && dateKey(state.date) === dateKey(date));
+    button.innerHTML = `<b>${day}</b>${item?.closed ? '<small>休</small>' : ''}`;
+    if (item && !item.closed) button.addEventListener('click', () => selectDate(item.date, button));
+    dateStrip.appendChild(button);
+  }
+  const firstMonth = bookableDates[0].date.getFullYear() * 12 + bookableDates[0].date.getMonth();
+  const last = bookableDates[bookableDates.length - 1].date;
+  const lastMonth = last.getFullYear() * 12 + last.getMonth();
+  const currentMonth = year * 12 + month;
+  document.querySelector('#prevMonth').disabled = currentMonth <= firstMonth;
+  document.querySelector('#nextMonth').disabled = currentMonth >= lastMonth;
 }
 
 function selectCourse(course) {
@@ -54,25 +102,52 @@ function selectDate(date, button) {
 
 function renderTimes() {
   timeGrid.innerHTML = '';
-  const times = state.course?.minutes === 80 ? ['09:30', '11:30', '14:30', '16:30'] : ['09:30', '10:45', '12:00', '14:00', '15:15', '16:30', '18:00'];
-  times.forEach((time, index) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'time-button';
-    button.textContent = time;
-    if (state.date && state.date.getDay() === 6 && index === times.length - 1) { button.disabled = true; button.textContent = '満席'; }
-    button.addEventListener('click', () => {
-      state.time = time;
-      document.querySelectorAll('.time-button').forEach(el => el.classList.toggle('selected', el === button));
-      updateSummary();
+  if (!state.course) {
+    timeGrid.innerHTML = '<p class="empty">先にコースを選択してください。</p>';
+    return;
+  }
+  const openingMinutes = 8 * 60 + 30;
+  const closingMinutes = 21 * 60;
+  const blocked = state.date?.getDay() === 6
+    ? [{ start: 10 * 60 + 40, end: 12 * 60 }, { start: 16 * 60 + 30, end: 17 * 60 + 40 }]
+    : [];
+  const times = [];
+  const frameMinutes = state.course.frame + (state.afterTea ? 10 : 0);
+  for (let start = openingMinutes; start < closingMinutes; start += 10) {
+    const end = start + frameMinutes;
+    if (!blocked.some(item => start < item.end && end > item.start)) {
+      times.push(`${String(Math.floor(start / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`);
+    }
+  }
+  const hours = [...new Set(times.map(time => Number(time.slice(0, 2))))];
+  hours.forEach(hour => {
+    const hourTimes = times.filter(time => Number(time.slice(0, 2)) === hour);
+    const section = document.createElement('section');
+    section.className = 'time-period';
+    section.innerHTML = '<div class="time-period-grid"></div>';
+    const grid = section.querySelector('.time-period-grid');
+    hourTimes.forEach(time => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'time-button';
+      button.textContent = time;
+      button.addEventListener('click', () => {
+        state.time = time;
+        document.querySelectorAll('.time-button').forEach(el => el.classList.toggle('selected', el === button));
+        updateSummary();
+      });
+      grid.appendChild(button);
     });
-    timeGrid.appendChild(button);
+    timeGrid.appendChild(section);
   });
 }
 
 function updateSummary() {
-  document.querySelector('#summaryCourse').textContent = state.course ? `${state.course.name}（${state.course.price}）` : '未選択';
-  document.querySelector('#summaryDuration').textContent = state.course ? `施術 ${state.course.minutes}分／予約枠 ${state.course.frame}分` : '—';
+  const totalMinutes = state.course ? state.course.minutes + (state.afterTea ? 10 : 0) : 0;
+  const totalPrice = state.course ? state.course.price + (state.afterTea ? 500 : 0) : 0;
+  document.querySelector('#summaryCourse').textContent = state.course ? `${state.course.name}（${yen.format(totalPrice)}円）` : '未選択';
+  document.querySelector('#summaryOption').textContent = state.afterTea ? 'アフターティー（＋10分・＋500円）' : 'なし';
+  document.querySelector('#summaryDuration').textContent = state.course ? `約${totalMinutes}分` : '—';
   document.querySelector('#summaryDate').textContent = state.date && state.time ? formatBooking() : '未選択';
   nextButton.disabled = !(state.course && state.date && state.time);
 }
@@ -82,7 +157,8 @@ function formatBooking() {
 }
 
 nextButton.addEventListener('click', () => {
-  document.querySelector('#modalBooking').textContent = `${state.course.name}・${formatBooking()}（施術${state.course.minutes}分）`;
+  const option = state.afterTea ? '・アフターティー付き' : '';
+  document.querySelector('#modalBooking').textContent = `${state.course.name}${option}・${formatBooking()}（約${state.course.minutes + (state.afterTea ? 10 : 0)}分）`;
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
   document.querySelector('#bookingForm input').focus();

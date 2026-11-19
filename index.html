@@ -43,13 +43,31 @@
         </div>
         <div class="course-list" id="courseList"></div>
 
+        <div class="option-block">
+          <h3>オプション</h3>
+          <label class="option-card" id="afterTeaCard">
+            <input id="afterTeaOption" type="checkbox">
+            <span><strong>アフターティー</strong><small>施術後にゆっくりお茶をお楽しみいただけます</small></span>
+            <b>＋10分・＋500円</b>
+          </label>
+        </div>
+
         <div class="section-heading date-heading">
           <span>02</span>
           <div><h2>ご希望の日時</h2><p>空いている時間から選択できます</p></div>
         </div>
-        <div class="date-strip" id="dateStrip" aria-label="日付を選択"></div>
+        <div class="calendar-card">
+          <div class="calendar-card-label">日付を選択</div>
+          <div class="calendar-nav">
+            <button id="prevMonth" type="button" aria-label="前の月">‹</button>
+            <strong id="calendarMonth"></strong>
+            <button id="nextMonth" type="button" aria-label="次の月">›</button>
+          </div>
+          <div class="calendar-weekdays" aria-hidden="true"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+          <div class="date-strip" id="dateStrip" aria-label="月間カレンダーから日付を選択"></div>
+        </div>
         <div class="time-area">
-          <div class="time-label"><span id="selectedDateLabel">日付を選択してください</span><small>○ 予約可</small></div>
+          <div class="time-label"><span id="selectedDateLabel">日付を選択してください</span></div>
           <div class="time-grid" id="timeGrid"></div>
         </div>
       </section>
@@ -58,13 +76,10 @@
         <div class="summary-top"><p>RESERVATION DETAILS</p><h2>ご予約内容</h2></div>
         <dl>
           <div><dt>コース</dt><dd id="summaryCourse">未選択</dd></div>
+          <div><dt>オプション</dt><dd id="summaryOption">なし</dd></div>
           <div><dt>所要時間</dt><dd id="summaryDuration">—</dd></div>
           <div><dt>ご来店日時</dt><dd id="summaryDate">未選択</dd></div>
         </dl>
-        <div class="buffer-note">
-          <span aria-hidden="true">◷</span>
-          <p><strong>ゆとりのある予約枠</strong>施術後に15分の準備時間を確保しています。</p>
-        </div>
         <button class="primary-button" id="nextButton" type="button" disabled>お客様情報へ進む <span>›</span></button>
         <p class="secure-note">この画面は予約体験用のサンプルです</p>
       </aside>
