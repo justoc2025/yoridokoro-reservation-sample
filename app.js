@@ -163,7 +163,7 @@ nextButton.addEventListener('click', () => {
   document.querySelector('#modalBooking').textContent = `${state.course.name}${option}・${formatBooking()}（約${state.course.minutes + (state.afterTea ? 10 : 0)}分）`;
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
-  document.querySelector('#bookingForm input').focus();
+  modal.querySelector('.modal-card').scrollTop = 0;
 });
 
 function closeModal() { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); nextButton.focus(); }
